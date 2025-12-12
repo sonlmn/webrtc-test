@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Prueba WebRTC - Amazon Connect</title>
+  <script src="https://static.connect.aws/connect-customer-webrtc/1.0.0/connect-customer-webrtc.min.js"></script>
+  <script src="config.js"></script>
+</head>
+<body>
+  <h1>Prueba WebRTC — Cliente</h1>
+
+  <div id="webrtc"></div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const webrtc = new connect.CustomerWebRTC({
+        containerId: "webrtc",
+        contactId: CONNECT_CONFIG.contactId,
+        participantToken: CONNECT_CONFIG.participantToken
+      });
+    });
+  </script>
+</body>
+</html>
