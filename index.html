@@ -1,23 +1,226 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Prueba WebRTC - Amazon Connect</title>
-  <script src="https://static.connect.aws/connect-customer-webrtc/1.0.0/connect-customer-webrtc.min.js"></script>
-  <script src="config.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Prueba Amazon Connect — Atención al cliente</title>
+  <meta name="description" content="Demo WebRTC para Amazon Connect: componente cliente integrado. Contacto visible sin login.">
+
+  <!-- Si quieres usar el SDK de Amazon Connect (comenta si no lo necesitas aún) -->
+  <script src="https://static.connect.aws/connect-customer-webrtc/1.0.0/connect-customer-webrtc.min.js" defer></script>
+  <script src="config.js" defer></script>
+
+  <style>
+    :root{
+      --accent:#0f6efd;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --radius:14px;
+      --max-width:1100px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#fff);color:#0f172a}
+    .container{max-width:var(--max-width);margin:48px auto;padding:24px}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:6px 0 0;color:var(--muted)}
+
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 18px rgba(16,24,40,0.06);padding:24px}
+
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:24px;margin-top:24px}
+
+    .hero{padding:28px;border-radius:12px}
+    .hero h2{margin:0 0 8px;font-size:26px}
+    .hero p{margin:0;color:var(--muted)}
+
+    .features{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+    .feature{flex:1 1 180px;background:linear-gradient(180deg,#fff,#fbfcff);padding:12px;border-radius:10px;border:1px solid rgba(15,23,42,0.03)}
+    .feature h4{margin:0 0 6px;font-size:15px}
+    .feature p{margin:0;color:var(--muted);font-size:13px}
+
+    /* Contact pane */
+    .contact{position:sticky;top:24px}
+    .contact .title{display:flex;align-items:center;justify-content:space-between}
+    .contact .title h3{margin:0}
+
+    .contact-form{margin-top:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input, textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;font-size:14px}
+    textarea{min-height:110px;resize:vertical}
+    .btn{display:inline-block;padding:10px 16px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;border:none;cursor:pointer}
+
+    /* WebRTC container preview */
+    #webrtc-container{height:300px;border-radius:10px;border:1px dashed rgba(15,23,42,0.06);display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(15,110,253,0.03),transparent)}
+    #webrtc-placeholder{color:var(--muted);text-align:center}
+
+    footer{margin-top:32px;text-align:center;color:var(--muted);font-size:13px}
+
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr;}
+      .contact{position:relative}
+    }
+  </style>
 </head>
 <body>
-  <h1>Prueba WebRTC — Cliente</h1>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">AC</div>
+        <div>
+          <h1>Atención al Cliente — Demo</h1>
+          <p class="lead">Prueba del componente WebRTC de Amazon Connect — sin login, contacto visible</p>
+        </div>
+      </div>
+      <nav aria-label="main">
+        <a href="#contact" class="btn" style="background:transparent;color:var(--accent);border:1px solid rgba(15,110,253,0.12)">Contactar</a>
+      </nav>
+    </header>
 
-  <div id="webrtc"></div>
+    <main class="layout">
+      <section>
+        <div class="card hero">
+          <h2>Conéctate con un agente por voz y/o vídeo</h2>
+          <p>En esta demo integramos el cliente WebRTC de Amazon Connect. No hay login: al hacer click podrás iniciar una prueba (necesitas rellenar <code>config.js</code> con un participantToken válido generado por tu backend o la consola).</p>
+
+          <div class="features">
+            <div class="feature">
+              <h4>WebRTC seguro</h4>
+              <p>Funciona sobre HTTPS — por eso desplegamos en Netlify.</p>
+            </div>
+            <div class="feature">
+              <h4>Sin servidor adicional</h4>
+              <p>El cliente se ejecuta en la página; los tokens deben proporcionarse por tu backend.</p>
+            </div>
+            <div class="feature">
+              <h4>Fácil de desplegar</h4>
+              <p>Sube el repo a GitHub y Netlify hará el deploy automático.</p>
+            </div>
+          </div>
+
+          <hr style="margin:18px 0;border:none;border-top:1px solid #eef4ff">
+
+          <div id="webrtc-container">
+            <div id="webrtc-placeholder">
+              <strong>Componente WebRTC</strong>
+              <div style="margin-top:8px;color:var(--muted);font-size:13px">(aquí se montará el cliente: elemento <code>webrtc</code>)</div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+            <button id="startTest" class="btn">Iniciar prueba</button>
+            <a href="#contact" class="btn" style="background:transparent;color:var(--accent);border:1px solid rgba(15,110,253,0.12)">Ver contacto</a>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>Indicaciones rápidas</h3>
+          <ol style="color:var(--muted)">
+            <li>Genera un participantToken desde tu backend usando las APIs de Amazon Connect (o desde la consola para pruebas).</li>
+            <li>Pega el token y el contactId en <code>config.js</code>.</li>
+            <li>Sube y espera a que Netlify realice el deploy.</li>
+            <li>Añade la URL pública a la allowlist de orígenes de tu instancia Amazon Connect.</li>
+          </ol>
+        </div>
+      </section>
+
+      <aside id="contact">
+        <div class="card contact">
+          <div class="title">
+            <h3>Contacto — Soporte</h3>
+            <div style="text-align:right;color:var(--muted);font-size:13px">Horario: 9:00–18:00</div>
+          </div>
+
+          <div class="contact-form" style="margin-top:12px">
+            <label for="name">Nombre</label>
+            <input id="name" placeholder="Tu nombre">
+
+            <label for="email" style="margin-top:10px">Email</label>
+            <input id="email" placeholder="tucorreo@ejemplo.com">
+
+            <label for="message" style="margin-top:10px">Mensaje</label>
+            <textarea id="message" placeholder="Cuéntanos tu consulta"></textarea>
+
+            <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+              <button id="send" class="btn">Enviar mensaje</button>
+              <a href="mailto:soporte@ejemplo.com" style="color:var(--muted);font-size:13px">o envía un email directamente</a>
+            </div>
+
+            <div id="sendStatus" style="margin-top:10px;color:var(--muted);font-size:13px;display:none"></div>
+          </div>
+
+          <hr style="margin:16px 0;border:none;border-top:1px solid #f1f5f9">
+
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="flex:0 0 auto">
+              <strong>Teléfono</strong>
+              <div style="color:var(--muted);font-size:13px">900 123 456</div>
+            </div>
+            <div style="flex:1 1 auto">
+              <strong>Dirección</strong>
+              <div style="color:var(--muted);font-size:13px">Calle Ejemplo 10, Madrid</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="card" style="display:inline-block;padding:16px;margin-top:18px">Demo creada para pruebas · No usar en producción</div>
+    </footer>
+  </div>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const webrtc = new connect.CustomerWebRTC({
-        containerId: "webrtc",
-        contactId: CONNECT_CONFIG.contactId,
-        participantToken: CONNECT_CONFIG.participantToken
-      });
+    // Comportamiento sencillo para el botón "Iniciar prueba" y el formulario
+    document.getElementById('startTest').addEventListener('click', async () => {
+      // Aquí intentamos inicializar el cliente WebRTC si CONNECT_CONFIG existe
+      try{
+        if(typeof CONNECT_CONFIG === 'undefined'){
+          alert('No se ha encontrado config.js o CONNECT_CONFIG. Añade participantToken y contactId en config.js');
+          return;
+        }
+
+        // Ejemplo de inicialización: crea un contenedor con id "webrtc" y monta el cliente.
+        const container = document.createElement('div');
+        container.id = 'webrtc';
+        container.style.width = '100%';
+        container.style.height = '280px';
+        const webrtcArea = document.getElementById('webrtc-container');
+        webrtcArea.innerHTML = '';
+        webrtcArea.appendChild(container);
+
+        // Si el SDK de Amazon Connect ya está cargado
+        if(window.connect && window.connect.CustomerWebRTC){
+          // Nota: aquí usamos parámetros básicos; adáptalos según tu implementación
+          new connect.CustomerWebRTC({
+            containerId: 'webrtc',
+            contactId: CONNECT_CONFIG.contactId,
+            participantToken: CONNECT_CONFIG.participantToken
+          });
+        } else {
+          const msg = document.createElement('div');
+          msg.id = 'webrtc-placeholder';
+          msg.innerHTML = '<strong>SDK no cargado</strong><div style="color:var(--muted);font-size:13px">El SDK de Amazon Connect no está disponible o todavía no se ha cargado.</div>';
+          webrtcArea.appendChild(msg);
+        }
+      }catch(err){
+        console.error(err);
+        alert('Error iniciando WebRTC: '+err.message);
+      }
+    });
+
+    // Simulación de envío de formulario (solo demo)
+    document.getElementById('send').addEventListener('click', () => {
+      const name = document.getElementById('name').value || '—';
+      const email = document.getElementById('email').value || '—';
+      const message = document.getElementById('message').value || '—';
+      const status = document.getElementById('sendStatus');
+      status.style.display = 'block';
+      status.textContent = `Mensaje preparado para enviar: ${name} · ${email} · ${message}`;
     });
   </script>
 </body>
